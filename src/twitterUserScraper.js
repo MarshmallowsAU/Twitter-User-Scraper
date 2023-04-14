@@ -1,12 +1,22 @@
 /**
- * Web Scraper
+ * Twitter User Scraper
  *
  * Created by: Jerry M Yang
+ * Date: 15/04/2023
  */
 
 const puppeteer = require("puppeteer-core");
 const prompt = require("prompt-sync")({ sigint: true });
 
+/**
+ * getProfileInfo
+ * 
+ * Given a downloaded HTTP page, extracts and returns
+ * information about the user contained within the page.
+ * 
+ * @param { page } page 
+ * @returns { profileName, username, followers, following }
+ */
 const getProfileInfo = async (page) =>
   await page.evaluate(() => {
     const $ = (selector) => document.querySelector(selector);
@@ -18,7 +28,16 @@ const getProfileInfo = async (page) =>
       following: $('a[href$="/following"]').innerText,
     };
   });
- 
+  
+  /**
+   * getTweets
+   * 
+   * Given a downloaded HTTP page, extracts and returns
+   * information about all the tweets made in that page.
+   * 
+   * @param { page } page 
+   * @returns { text, timeSent, numReplies, numRetweets , numLikes }
+   */
   const getTweets = async (page) =>
   await page.evaluate(() => {
     return [...document.querySelectorAll("article")].map((tweet) => {
@@ -39,7 +58,17 @@ const getProfileInfo = async (page) =>
       };
     });
   });
- 
+
+/**
+ * getTwitterData
+ * 
+ * When given a Twitter User URL returns an object
+ * that contains information about the user and the
+ * Tweets that they have made.
+ * 
+ * @param { string } url 
+ * @returns { profile, tweets }
+ */
 const getTwitterData = async (url) => {
   const _browser = await puppeteer.connect({
     browserWSEndpoint: `wss://chrome.browserless.io?token=${BROWSERLESS-API-KEY}`,
@@ -59,6 +88,45 @@ const getTwitterData = async (url) => {
   };
 };
 
+/**
+ * niceDate
+ * 
+ * Given the date returned by the scraper, it returns
+ * a revised string that has the date in a nicer looking
+ * format.
+ * 
+ * @param { string } time 
+ * @returns { string }
+ */
+const niceDate = (time) => {
+  let niceDate = `Time: ${time.slice(11,19)} - ${(time.slice(0, 10)).replace(/-/g, ' ')}`;
+  return niceDate;
+}
+
+/**
+ * addWhiteSpace
+ * 
+ * Given a length returns a string of whitespace of
+ * length: 8 - length to ensure consistent whitespace.
+ * 
+ * @param { number } length 
+ * @returns { string }
+ */
+const addWhiteSpace = (length) => {
+  const whiteSpace = ' '.repeat(8-length);
+  return whiteSpace;
+}
+
+/**
+ * scrapeUser
+ * 
+ * When called prompts the user to enter a user profile
+ * URL of a Twitter User. It then prints out all information
+ * related to that user.
+ * 
+ * @param {}
+ * @returns {}
+ */
 const scrapeUser = async () => {
   const url = prompt('Enter Profile URL to be Scraped: ');
   console.log(`Scraping Profile of: ${url}\n`);
@@ -74,16 +142,5 @@ const scrapeUser = async () => {
     console.log(`----------\n`);
   }
 }
-
-const niceDate = (time) => {
-  let niceDate = `Time: ${time.slice(11,19)} - ${(time.slice(0, 10)).replace(/-/g, ' ')}`;
-  return niceDate;
-}
-
-const addWhiteSpace = (length) => {
-  const whiteSpace = ' '.repeat(8-length);
-  return whiteSpace;
-}
-
 
 scrapeUser();

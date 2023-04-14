@@ -1,4 +1,4 @@
-# Web-Scraper
+# Twitter User Scraper
 
 Hi there!
 
